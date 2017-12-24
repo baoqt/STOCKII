@@ -17,6 +17,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -32,15 +34,11 @@ public class input_screen extends AppCompatActivity {
     EditText itemQuantity;
     TextView currentStockDisplay;
     TextView partBarcodeDisplay;
-    TextView partIDDisplay;
-    TextView partDescriptionDisplay;
     TextView lastChangedDisplay;
+    TextView locationDisplay;
     Long partQuantity;
     int currentStock;
-    String partDescriptionFromDB;
-    String partExtendedDescriptionFromDB;
     Connection connection;
-
     String currentTime;
 
     private final static String SCAN_ACTION = ScanManager.ACTION_DECODE;
@@ -49,15 +47,13 @@ public class input_screen extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Toast errorToast = Toast.makeText(getApplicationContext(), "Error, press back to scan" +
-                            " new item",
-                    Toast.LENGTH_SHORT);
+            Toast errorToast = Toast.makeText(getApplicationContext(), "Error, press back " +
+                            "to scan new item", Toast.LENGTH_SHORT);
             errorToast.show();
         }
     };
 
     private void initScan() {
-        // TODO Auto-generated method stub
         mScanManager = new ScanManager();
         mScanManager.openScanner();
 
@@ -66,13 +62,11 @@ public class input_screen extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        // TODO Auto-generated method stub
         super.onDestroy();
     }
 
     @Override
     protected void onPause() {
-        // TODO Auto-generated method stub
         super.onPause();
         if (mScanManager != null) {
             mScanManager.stopDecode();
@@ -82,7 +76,6 @@ public class input_screen extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        // TODO Auto-generated method stub
         super.onResume();
         initScan();
         IntentFilter filter = new IntentFilter();
@@ -111,26 +104,26 @@ public class input_screen extends AppCompatActivity {
 
         currentStockDisplay = (TextView) findViewById(R.id.currentStockDisplay);
         partBarcodeDisplay = (TextView) findViewById(R.id.partBarcodeDisplay);
-        partIDDisplay = (TextView) findViewById(R.id.partIDDisplay);
-        partDescriptionDisplay = (TextView) findViewById(R.id.partDescriptionDisplay);
         lastChangedDisplay = (TextView) findViewById(R.id.lastChangedDisplay);
+        locationDisplay = (TextView) findViewById(R.id.locationDisplay);
         itemQuantity = (EditText) findViewById(R.id.itemQuantity);
 
+        // Attempt to fetch data from the database
         currentStock = retrieveDBValue();
-        partDescriptionFromDB = retrievePartDescription();
-        partExtendedDescriptionFromDB = retrieveExtendedPartDescription();
+        currentStockDisplay.setText(Integer.toString(currentStock));
 
-        currentStockDisplay.setText(Integer.toString(currentStock));                                // Use values from database passed from previous check
-        partIDDisplay.setText(partDescriptionFromDB);                                               // ""
-        partDescriptionDisplay.setText(partExtendedDescriptionFromDB);                              // ""
-        partBarcodeDisplay.setText(getIntent().getStringExtra("BARCODE_STRING"));                   // Barcode is passed from previous screen
+        // Values come from the previous screen
+        partBarcodeDisplay.setText(getIntent().getStringExtra("BARCODE_STRING"));
+        locationDisplay.setText(getIntent().getStringExtra("LOCATION_STRING"));
     }
 
+    // Function fetches the current inventory of the specific item
     public int retrieveDBValue() {
         int DBValue = 0;
         try {
             connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                    getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
                     getIntent().getStringExtra("IP"));
             if (connection == null) {
                 Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
@@ -139,14 +132,16 @@ public class input_screen extends AppCompatActivity {
             }
             else {
                 String query = "SELECT \"Cur#Cost\" FROM inventory WHERE \"P/N\" = '" +
-                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
+                        "\"Location\" = '" + locationDisplay.getText() + "'";
                 Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(query);
                 if (result.next()) {
                     DBValue = result.getInt(1);
                 }
                 else {
-                    Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
+                    Toast errorToast = Toast.makeText(getApplicationContext(),
+                            "Connection error ",
                             Toast.LENGTH_SHORT);
                     errorToast.show();
                 }
@@ -158,105 +153,20 @@ public class input_screen extends AppCompatActivity {
         return DBValue;
     }
 
-    public String retrievePartDescription() {
-        String DBValue = "";
-        try {
-            connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                    getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
-                    getIntent().getStringExtra("IP"));
-            if (connection == null) {
-                Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
-                        Toast.LENGTH_SHORT);
-                errorToast.show();
-            }
-            else {
-                String query = "SELECT \"Title\" FROM inventory WHERE \"P/N\"" +
-                        "= '" + getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
-                Statement statement = connection.createStatement();
-                ResultSet result = statement.executeQuery(query);
-                if (result.next()) {
-                    DBValue = result.getString(1);
-                }
-                else {
-                    DBValue = "NULL";
-                }
-            }
-        }
-        catch (Exception ex) {
-        }
-
-        return DBValue;
-    }
-
-    public String retrieveExtendedPartDescription() {
-        String DBValue = "";
-        try {
-            connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                    getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
-                    getIntent().getStringExtra("IP"));
-            if (connection == null) {
-                Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
-                        Toast.LENGTH_SHORT);
-                errorToast.show();
-            }
-            else {
-                String query = "SELECT \"Detail\" FROM inventory WHERE " +
-                "\"P/N\" = '" + getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
-                Statement statement = connection.createStatement();
-                ResultSet result = statement.executeQuery(query);
-                if (result.next()) {
-                    DBValue = result.getString(1);
-                }
-                else {
-                    DBValue = "NULL";
-                }
-            }
-        }
-        catch (Exception ex) {
-        }
-
-        return DBValue;
-    }
-
-    public void onStoreTap(View view) {                                                             // Store function
-        if (itemQuantity.getText().toString().equals("")) {                                         // Checks for empty input field
+    // Function checks add value for valid input
+    public void onStoreTap(View view) {
+        if (itemQuantity.getText().toString().equals("")) {
             Toast errorToast = Toast.makeText(getApplicationContext(), "Error, empty input",
                     Toast.LENGTH_SHORT);
             errorToast.show();
         } else {
-            partQuantity = Long.parseLong(itemQuantity.getText().toString());                       // Record user input as int
-            if (partQuantity > 0 && partQuantity < 2147483647 &&                                    // Check for non negative and int overflow input
-                    (currentStock + partQuantity) <= 2147483647 &&                                  // Check for overflow result
-                    (currentStock + partQuantity) >= 0) {                                           // Check for negative result
-                if (currentStock == retrieveDBValue()) {                                            // If calculated value equals the expected value of the database value at the moment and the user input
-                    writeDBValueAdd(partQuantity);                                                  // Update the database with new value
-                    currentStockDisplay.setText(Integer.toString(currentStock));                    // Update display with new stock
-                    currentTime = new SimpleDateFormat("HH:mm:ss").format(new Date());
-                    lastChangedDisplay.setText(currentTime);
-                } else {                                                                            // Other error
-                    Toast errorToast = Toast.makeText(getApplicationContext(),
-                            "Error, updating current inventory", Toast.LENGTH_SHORT);
-                    errorToast.show();
-                    currentStock = retrieveDBValue();
-                    currentStockDisplay.setText(Integer.toString(currentStock));
-                }
-            }
-        }
-    }
-
-    public void onWithdrawTap(View view) {                                                          // Withdraw function, same as above but with one extra check to prevent over withdrawal
-        if (itemQuantity.getText().toString().equals("")) {                                         // Checks for empty input field
-            Toast errorToast = Toast.makeText(getApplicationContext(), "Error, empty input",
-                    Toast.LENGTH_SHORT);
-            errorToast.show();
-        } else {
-            partQuantity = Long.parseLong(itemQuantity.getText().toString());                       // Record user input as int
-            if (partQuantity > 0 && partQuantity < 2147483647 &&                                    // Check for non negative and int overflow input
-                    (currentStock - partQuantity) <= 2147483647 &&                                  // Check for overflow result
-                    (currentStock - partQuantity) >= 0) {                                           // Check for negative result
+            partQuantity = Long.parseLong(itemQuantity.getText().toString());
+            if (partQuantity > 0 && partQuantity < 2147483647 &&
+                    (currentStock + partQuantity) <= 2147483647 &&
+                    (currentStock + partQuantity) >= 0) {
                 if (currentStock == retrieveDBValue()) {
-                    writeDBValueSub(partQuantity);
-                    currentStockDisplay.setText(Integer.toString(currentStock));                    // Update display with new stock
+                    writeDBValueAdd(partQuantity);
+                    currentStockDisplay.setText(Integer.toString(currentStock));
                     currentTime = new SimpleDateFormat("HH:mm:ss").format(new Date());
                     lastChangedDisplay.setText(currentTime);
                 } else {
@@ -270,10 +180,39 @@ public class input_screen extends AppCompatActivity {
         }
     }
 
+    // Function checks withdraw value for valid input
+    public void onWithdrawTap(View view) {
+        if (itemQuantity.getText().toString().equals("")) {
+            Toast errorToast = Toast.makeText(getApplicationContext(), "Error, empty input",
+                    Toast.LENGTH_SHORT);
+            errorToast.show();
+        } else {
+            partQuantity = Long.parseLong(itemQuantity.getText().toString());
+            if (partQuantity > 0 && partQuantity < 2147483647 &&
+                    (currentStock - partQuantity) <= 2147483647 &&
+                    (currentStock - partQuantity) >= 0) {
+                if (currentStock == retrieveDBValue()) {
+                    writeDBValueSub(partQuantity);
+                    currentStockDisplay.setText(Integer.toString(currentStock));
+                    currentTime = new SimpleDateFormat("HH:mm:ss").format(new Date());
+                    lastChangedDisplay.setText(currentTime);
+                } else {
+                    Toast errorToast = Toast.makeText(getApplicationContext(),
+                            "Error, updating current inventory", Toast.LENGTH_SHORT);
+                    errorToast.show();
+                    currentStock = retrieveDBValue();
+                    currentStockDisplay.setText(Integer.toString(currentStock));
+                }
+            }
+        }
+    }
+
+    // Function updates the transaction log with the new changes
     public void updateLog(String type, Long partQuantity) {
         try {
             connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                    getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
                     getIntent().getStringExtra("IP"));
             if (connection == null) {
                 Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
@@ -283,9 +222,11 @@ public class input_screen extends AppCompatActivity {
             String query = "UPDATE Transactions SET \"Username\" = '" +
                     getIntent().getStringExtra("USERNAME").trim() + "', \"Date/Time\" = " +
                     "GETDATE(),\"P/N\" = '" +
-                    getIntent().getStringExtra("BARCODE_STRING").trim() + "', \"Type\" = '" + type
-                    +"'," + " \"Quantity\" = '" + partQuantity +"' WHERE \"Date/Time\" IN (SELECT" +
-                    " TOP (1) \"Date/Time\" FROM Transactions ORDER BY \"Date/Time\")";
+                    getIntent().getStringExtra("BARCODE_STRING").trim() + "', \"Type\" = '" +
+                    type + "'," + " \"Quantity\" = '" + partQuantity + ", \"Location\" = " + "" +
+                    getIntent().getStringExtra("LOCATION_STRING").trim() + "' WHERE " +
+                    "\"Date/Time\" IN (SELECT TOP (1) \"Date/Time\" FROM Transactions ORDER BY " +
+                    "\"Date/Time\")";
             Statement statement = connection.createStatement();
             statement.executeQuery(query);
         }
@@ -294,10 +235,12 @@ public class input_screen extends AppCompatActivity {
 
     }
 
+    // Function deposits stock into inventory after input validation
     public void writeDBValueAdd(long partQuantity) {
         try {
             connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                    getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
                     getIntent().getStringExtra("IP"));
             if (connection == null) {
                 Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
@@ -307,7 +250,9 @@ public class input_screen extends AppCompatActivity {
             else {
                 currentStock += partQuantity;
                 String query = "SELECT * FROM inventory WHERE \"P/N\" = '" +
-                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
+                        "\"Location\" = '" +
+                        getIntent().getStringExtra("LOCATION_STRING").trim() + "'";
                 Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(query);
                 if (result.next()) {
@@ -316,13 +261,15 @@ public class input_screen extends AppCompatActivity {
                             + " part(s)" + " stored", Toast.LENGTH_SHORT);
                     withdrawToast.show();
                 } else {
-                    Toast errorToast = Toast.makeText(getApplicationContext(), "Error, part(s) " +
-                            "not stored", Toast.LENGTH_SHORT);
+                    Toast errorToast = Toast.makeText(getApplicationContext(), "Error, " +
+                            "part(s) not stored", Toast.LENGTH_SHORT);
                     errorToast.show();
                 }
                 query = "UPDATE inventory SET \"Cur#Cost\" = '" + currentStock +
                         "' WHERE \"P/N\" = '" +
-                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
+                        "\"Location\" = '" +
+                        getIntent().getStringExtra("LOCATION_STRING").trim() + "'";
                 statement = connection.createStatement();
                 statement.executeQuery(query);
             }
@@ -331,10 +278,12 @@ public class input_screen extends AppCompatActivity {
         }
     }
 
+    // Function withdraws stock from inventory after input validation
     public void writeDBValueSub(long partQuantity) {
         try {
             connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                    getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
                     getIntent().getStringExtra("IP"));
             if ((connection == null) && (currentStock -= partQuantity) >= 0) {
                 Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
@@ -344,7 +293,9 @@ public class input_screen extends AppCompatActivity {
             else {
                 currentStock -= partQuantity;
                 String query = "SELECT * FROM inventory WHERE \"P/N\" = '" +
-                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
+                        "\"Location\" = '" +
+                        getIntent().getStringExtra("LOCATION_STRING").trim();
                 Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(query);
                 if (result.next()) {
@@ -353,13 +304,15 @@ public class input_screen extends AppCompatActivity {
                             + " part(s)" + " withdrawn", Toast.LENGTH_SHORT);
                     withdrawToast.show();
                 } else {
-                    Toast errorToast = Toast.makeText(getApplicationContext(), "Error, part(s) " +
-                            "not stored", Toast.LENGTH_SHORT);
+                    Toast errorToast = Toast.makeText(getApplicationContext(), "Error, " +
+                            "part(s) not stored", Toast.LENGTH_SHORT);
                     errorToast.show();
                 }
                 query = "UPDATE inventory SET \"Cur#Cost\" = '" + currentStock +
                         "' WHERE \"P/N\" = '" +
-                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
+                        "\"Location\" = '" +
+                        getIntent().getStringExtra("LOCATION_STRING").trim() + "'";
                 statement = connection.createStatement();
                 statement.executeQuery(query);
             }
@@ -368,9 +321,15 @@ public class input_screen extends AppCompatActivity {
         }
     }
 
+    // Function lets the user assign a new value
+    // Usually done after taking a complete restock
+    // Passes values onto next screen
     public void retakeInventory(View view){
         Intent intent = new Intent(getBaseContext(), retake_inventory.class);
-        intent.putExtra("BARCODE_STRING", getIntent().getStringExtra("BARCODE_STRING"));
+        intent.putExtra("BARCODE_STRING",
+                getIntent().getStringExtra("BARCODE_STRING"));
+        intent.putExtra("LOCATION_STRING",
+                getIntent().getStringArrayExtra("LOCATION_STRING"));
         intent.putExtra("USERNAME", getIntent().getStringExtra("USERNAME"));
         intent.putExtra("PASSWORD", getIntent().getStringExtra("PASSWORD"));
         intent.putExtra("DATABASE", getIntent().getStringExtra("DATABASE"));

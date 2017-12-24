@@ -32,17 +32,18 @@ public class new_part extends AppCompatActivity {
     private ScanManager mScanManager;
     private BroadcastReceiver mScanReceiver = new BroadcastReceiver() {
 
+        // User started a new scan
+        // Prompt the user to return to scanning screen to do that
         @Override
         public void onReceive(Context context, Intent intent) {
-            Toast errorToast = Toast.makeText(getApplicationContext(), "Error, press back to scan" +
-                            " new item",
+            Toast errorToast = Toast.makeText(getApplicationContext(), "Error, press back to" +
+                            " scan new item",
                     Toast.LENGTH_SHORT);
             errorToast.show();
         }
     };
 
     private void initScan() {
-        // TODO Auto-generated method stub
         mScanManager = new ScanManager();
         mScanManager.openScanner();
 
@@ -51,13 +52,11 @@ public class new_part extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        // TODO Auto-generated method stub
         super.onDestroy();
     }
 
     @Override
     protected void onPause() {
-        // TODO Auto-generated method stub
         super.onPause();
         if (mScanManager != null) {
             mScanManager.stopDecode();
@@ -67,7 +66,6 @@ public class new_part extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        // TODO Auto-generated method stub
         super.onResume();
         initScan();
         IntentFilter filter = new IntentFilter();
@@ -83,6 +81,7 @@ public class new_part extends AppCompatActivity {
         registerReceiver(mScanReceiver, filter);
     }
 
+    // Create the message asking if this is the right barcode to add
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,33 +101,38 @@ public class new_part extends AppCompatActivity {
         IDDisplay.setText(userPrompt);
     }
 
+    // Add new item into database
     public void onYesClick(View view) {
         try {
             connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                    getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
                     getIntent().getStringExtra("IP"));
             if (connection == null) {
                 Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
                         Toast.LENGTH_SHORT);
                 errorToast.show();
             } else {
-                String query = "INSERT INTO inventory (\"Part Number\", \"Quantity\") VALUES" +
-                        "('" + getIntent().getStringExtra("BARCODE_STRING").trim() + "', '0')";
+                String query = "INSERT INTO inventory (\"Part Number\", \"Cur#Cost\", " +
+                        "\"Location\") VALUES ('" +
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "', '0', " +
+                        getIntent().getStringExtra("LOCATION_STRING").trim() + "')";
                 Statement statement = connection.createStatement();
                 statement.executeQuery(query);
+                Toast toast = Toast.makeText(getApplicationContext(), "Part added",
+                        Toast.LENGTH_SHORT);
+                toast.show();
             }
         }
         catch (Exception ex) {
         }
-        Toast toast = Toast.makeText(getApplicationContext(), "Part added",
-                Toast.LENGTH_SHORT);
-        toast.show();
-
         Intent returnIntent = new Intent();
         setResult(waiting_for_scan.RESULT_CANCELED, returnIntent);
         finish();
     }
 
+    // Cancel button clicked
+    // Return to scanning screen
     public void onNoClick(View view) {
         Intent returnIntent = new Intent();
         setResult(waiting_for_scan.RESULT_CANCELED, returnIntent);
@@ -161,5 +165,4 @@ public class new_part extends AppCompatActivity {
 
         return connection;
     }
-
 }

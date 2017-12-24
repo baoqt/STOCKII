@@ -35,6 +35,10 @@
     <string name="set_new_value">Set New Value</string>
     <string name="cancel">Cancel</string>
     <string name="last_changed">Last Changed at:</string>
+    <string name="unknown_location">\???</string>
+    <string name="current_location">Current Location</string>
+    <string name="input_current_location"></string>
+    <string name="location_input_prompt">Input Current Location</string>
 
 
 </resources>

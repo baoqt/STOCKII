@@ -12,6 +12,7 @@ import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.sql.Connection;
@@ -22,6 +23,8 @@ import java.sql.Statement;
 
 
 public class waiting_for_scan extends AppCompatActivity {
+
+    EditText locationInput;
 
     private ScanManager mScanManager = new ScanManager();
     private final static String SCAN_ACTION = ScanManager.ACTION_DECODE;
@@ -43,14 +46,26 @@ public class waiting_for_scan extends AppCompatActivity {
                     break;
                 }
             }
-            databaseCheck(barcodeStr, i);
+            if (locationInput.getText().toString().equals("")) {
+                Toast errorToast = Toast.makeText(getApplicationContext(), "Error, enter " +
+                        "a location", Toast.LENGTH_SHORT);
+                errorToast.show();
+            }
+            else {
+                databaseCheck(barcodeStr, i);
+            }
         }
     };
 
+    // Check if the database has any record of the part in question, and makes the input screen
+    // if it does.
+    // Makes the new part screen instead if it doesn't, asking if the user wants to add the new part
+    // to the database.
     public void databaseCheck(String barcodeStr, int i) {
         try {
             connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                    getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
                     getIntent().getStringExtra("IP"));
             if (connection == null) {
                 Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
@@ -58,31 +73,41 @@ public class waiting_for_scan extends AppCompatActivity {
                 errorToast.show();
             } else {
                 String query = "SELECT * FROM inventory where \"P/N\" = '" +
-                        barcodeStr.substring(0, i).trim() + "'";
+                        barcodeStr.substring(0, i).trim() + "' AND \"Location\" = '" +
+                        locationInput.getText() + "'";
                 Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(query);
                 if (result.next()) {
                     Intent newScreen = new Intent(getBaseContext(), input_screen.class);
                     newScreen.putExtra("BARCODE_STRING", barcodeStr.substring(0, i).trim());
-                    newScreen.putExtra("USERNAME", getIntent().getStringExtra("USERNAME"));
-                    newScreen.putExtra("PASSWORD", getIntent().getStringExtra("PASSWORD"));
-                    newScreen.putExtra("DATABASE", getIntent().getStringExtra("DATABASE"));
+                    newScreen.putExtra("LOCATION_STRING", locationInput.getText());
+                    newScreen.putExtra("USERNAME",
+                            getIntent().getStringExtra("USERNAME"));
+                    newScreen.putExtra("PASSWORD",
+                            getIntent().getStringExtra("PASSWORD"));
+                    newScreen.putExtra("DATABASE",
+                            getIntent().getStringExtra("DATABASE"));
                     newScreen.putExtra("IP", getIntent().getStringExtra("IP"));
-                    startActivityForResult(newScreen, 0);                               // Add part quantity into .putExtra
+                    startActivityForResult(newScreen, 0);
                 }
                 else {
                     Intent newScreen = new Intent(getBaseContext(), new_part.class);
                     newScreen.putExtra("BARCODE_STRING", barcodeStr.substring(0, i).trim());
-                    newScreen.putExtra("USERNAME", getIntent().getStringExtra("USERNAME"));
-                    newScreen.putExtra("PASSWORD", getIntent().getStringExtra("PASSWORD"));
-                    newScreen.putExtra("DATABASE", getIntent().getStringExtra("DATABASE"));
+                    newScreen.putExtra("LOCATION_STRING", locationInput.getText());
+                    newScreen.putExtra("USERNAME",
+                            getIntent().getStringExtra("USERNAME"));
+                    newScreen.putExtra("PASSWORD",
+                            getIntent().getStringExtra("PASSWORD"));
+                    newScreen.putExtra("DATABASE",
+                            getIntent().getStringExtra("DATABASE"));
                     newScreen.putExtra("IP", getIntent().getStringExtra("IP"));
                     startActivityForResult(newScreen, 1);
                 }
             }
         }
         catch (Exception ex) {
-            Toast errorToast = Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT);
+            Toast errorToast = Toast.makeText(getApplicationContext(), "Error",
+                    Toast.LENGTH_SHORT);
             errorToast.show();
         }
     }
@@ -127,7 +152,6 @@ public class waiting_for_scan extends AppCompatActivity {
     }
 
     private void initScan() {
-        // TODO Auto-generated method stub
         mScanManager = new ScanManager();
         mScanManager.openScanner();
 
@@ -136,13 +160,11 @@ public class waiting_for_scan extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        // TODO Auto-generated method stub
         super.onDestroy();
     }
 
     @Override
     protected void onPause() {
-        // TODO Auto-generated method stub
         super.onPause();
         if(mScanManager != null) {
             mScanManager.stopDecode();
@@ -152,7 +174,6 @@ public class waiting_for_scan extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        // TODO Auto-generated method stub
         super.onResume();
         initScan();
         IntentFilter filter = new IntentFilter();

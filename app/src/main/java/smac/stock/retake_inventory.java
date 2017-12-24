@@ -39,8 +39,9 @@ public class retake_inventory extends AppCompatActivity {
         newValue = (EditText) findViewById(R.id.newValue);
     }
 
+    // Function changes the current stock of an item
     public void setNewValue(View view) {
-        if (newValue.getText().toString().equals("")) {                                             // Checks for empty input field
+        if (newValue.getText().toString().equals("")) {
             Toast errorToast = Toast.makeText(getApplicationContext(), "Error, empty input",
                     Toast.LENGTH_SHORT);
             errorToast.show();
@@ -49,16 +50,19 @@ public class retake_inventory extends AppCompatActivity {
             newQuantity = Long.parseLong(newValue.getText().toString());
             try {
                 connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                        getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
+                        getIntent().getStringExtra("PASSWORD"),
+                        getIntent().getStringExtra("DATABASE"),
                         getIntent().getStringExtra("IP"));
                 if (connection == null) {
-                    Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
-                            Toast.LENGTH_SHORT);
+                    Toast errorToast = Toast.makeText(getApplicationContext(),
+                            "Connection error ", Toast.LENGTH_SHORT);
                     errorToast.show();
                 }
                 else {
                     String query = "SELECT * FROM inventory WHERE \"P/N\" = '" +
-                            getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                            getIntent().getStringExtra("BARCODE_STRING").trim() +
+                            "' AND \"Location\" = '" +
+                            getIntent().getStringExtra("LOCATION_STRING").trim();
                     Statement statement = connection.createStatement();
                     ResultSet result = statement.executeQuery(query);
                     if (result.next()) {
@@ -68,27 +72,31 @@ public class retake_inventory extends AppCompatActivity {
                         toast.show();
 
                     } else {
-                        Toast errorToast = Toast.makeText(getApplicationContext(), "Error, part(s) " +
-                                "not stored", Toast.LENGTH_SHORT);
+                        Toast errorToast = Toast.makeText(getApplicationContext(), "Error, " +
+                                "part(s) not stored", Toast.LENGTH_SHORT);
                         errorToast.show();
                     }
                     query = "UPDATE inventory SET \"Cur#Cost\" = '" + newQuantity +
                             "' WHERE \"P/N\" = '" +
-                            getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                            getIntent().getStringExtra("BARCODE_STRING").trim() +
+                            "' AND \"Location\" = '" +
+                            getIntent().getStringExtra("LOCATION_STRING").trim();
                     statement = connection.createStatement();
                     statement.executeQuery(query);
+
+                    Intent returnIntent = new Intent();
+                    setResult(waiting_for_scan.RESULT_CANCELED, returnIntent);
+                    finish();
                 }
             }
             catch (Exception ex) {
             }
-            Intent returnIntent = new Intent();
-            setResult(waiting_for_scan.RESULT_CANCELED, returnIntent);
-            finish();
         }
     }
 
+    // Function updates the transactions log
     public void updateLog(Long quantity) {
-        if (newValue.getText().toString().equals("")) {                                             // Checks for empty input field
+        if (newValue.getText().toString().equals("")) {
             Toast errorToast = Toast.makeText(getApplicationContext(), "Error, empty input",
                     Toast.LENGTH_SHORT);
             errorToast.show();
@@ -96,19 +104,21 @@ public class retake_inventory extends AppCompatActivity {
         else {
             try {
                 connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
-                        getIntent().getStringExtra("PASSWORD"), getIntent().getStringExtra("DATABASE"),
+                        getIntent().getStringExtra("PASSWORD"),
+                        getIntent().getStringExtra("DATABASE"),
                         getIntent().getStringExtra("IP"));
                 if (connection == null) {
-                    Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
-                            Toast.LENGTH_SHORT);
+                    Toast errorToast = Toast.makeText(getApplicationContext(),
+                            "Connection error ", Toast.LENGTH_SHORT);
                     errorToast.show();
                 }
                 String query = "UPDATE Transactions SET \"Username\" = '" +
-                        getIntent().getStringExtra("USERNAME").trim() + "', \"Date/Time\" = " +
-                        "GETDATE(),\"P/N\" = '" +
-                        getIntent().getStringExtra("BARCODE_STRING").trim() + "', \"Type\" = " +
-                        "'Update '," + " \"Quantity\" = '" + quantity +
-                        "' WHERE \"Date/Time\" IN (SELECT TOP (1) \"Date/Time\" FROM Transactions" +
+                        getIntent().getStringExtra("USERNAME").trim() + "', \"Date/Time\" " +
+                        "= GETDATE(),\"P/N\" = '" +
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "', \"Type\"" +
+                        " = 'Update ', \"Quantity\" = '" + quantity + ", \"Location\" = " +
+                        getIntent().getStringExtra("LOCATION_STRING").trim() + "' WHERE " +
+                        "\"Date/Time\" IN (SELECT TOP (1) \"Date/Time\" FROM Transactions " +
                         "ORDER BY \"Date/Time\")";
                 Statement statement = connection.createStatement();
                 statement.executeQuery(query);

@@ -48,7 +48,8 @@ public class connecting_to_server extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences addressPreference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences addressPreference =
+                        PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 ip = addressPreference.getString("example_text", "192.168.0.5");
 
                 CheckLogin checkLogin = new CheckLogin();
@@ -57,13 +58,11 @@ public class connecting_to_server extends AppCompatActivity {
         });
     }
 
+        // Attempts a login to the database using user information
+        // Does in background
         public class CheckLogin extends AsyncTask<String, String, String> {
-            String z = "";
+            String responseMessage = "";
             boolean successFlag = false;
-
-//            @Override
-//            protected void onPreExecute() {
-//            }
 
             @Override
             protected void onPostExecute(String r) {
@@ -85,33 +84,33 @@ public class connecting_to_server extends AppCompatActivity {
                 password = passwordPrompt.getText().toString();
 
                 if ((username.trim().equals("")) || (password.trim().equals(""))) {
-                    z = "Enter a username and password";
+                    responseMessage = "Enter a username and password";
                 } else {
                     try {
                         connection = attemptConnection(username, password, database, ip);
                         if (connection == null) {
-                            z = "Connection Error";
+                            responseMessage = "Connection Error";
                         } else {
                             String query = "SELECT * FROM login where Username = '" + username +
                                     "' and Password = '" + password + "'  ";
                             Statement statement = connection.createStatement();
                             ResultSet result = statement.executeQuery(query);
                             if (result.next()) {
-                                z = "Login Successful";
+                                responseMessage = "Login Successful";
                                 successFlag = true;
                                 connection.close();
                             } else {
-                                z = "Invalid credentials";
+                                responseMessage = "Invalid credentials";
                                 successFlag = false;
                             }
                         }
                     }
                     catch (Exception ex) {
                         successFlag = false;
-                        z = ex.getMessage();
+                        responseMessage = ex.getMessage();
                     }
                 }
-                return z;
+                return responseMessage;
             }
         }
 
@@ -127,8 +126,8 @@ public class connecting_to_server extends AppCompatActivity {
 
         try {
             Class.forName("net.sourceforge.jtds.jdbc.Driver");
-            connectionURL = "jdbc:jtds:sqlserver://" + ip + ";databaseName=" + database + ";user=" + username +
-                    ";password=" + password + ";";
+            connectionURL = "jdbc:jtds:sqlserver://" + ip + ";databaseName=" + database + ";user=" +
+                    username + ";password=" + password + ";";
             connection = DriverManager.getConnection(connectionURL);
         }
         catch (SQLException se) {
