@@ -113,10 +113,10 @@ public class new_part extends AppCompatActivity {
                         Toast.LENGTH_SHORT);
                 errorToast.show();
             } else {
-                String query = "INSERT INTO inventory (\"Part Number\", \"Cur#Cost\", " +
-                        "\"Location\") VALUES ('" +
-                        getIntent().getStringExtra("BARCODE_STRING").trim() + "', '0', " +
-                        getIntent().getStringExtra("LOCATION_STRING").trim() + "')";
+                String query = "INSERT INTO inventory (\"P/N\", \"Cur#Cost\", \"Location\")" +
+                        " VALUES ('" +
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "', 0," +
+                        getIntent().getStringExtra("LOCATION_STRING").trim() + ")";
                 Statement statement = connection.createStatement();
                 statement.executeQuery(query);
                 Toast toast = Toast.makeText(getApplicationContext(), "Part added",

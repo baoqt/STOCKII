@@ -46,6 +46,7 @@ public class waiting_for_scan extends AppCompatActivity {
                     break;
                 }
             }
+
             if (locationInput.getText().toString().equals("")) {
                 Toast errorToast = Toast.makeText(getApplicationContext(), "Error, enter " +
                         "a location", Toast.LENGTH_SHORT);
@@ -80,7 +81,7 @@ public class waiting_for_scan extends AppCompatActivity {
                 if (result.next()) {
                     Intent newScreen = new Intent(getBaseContext(), input_screen.class);
                     newScreen.putExtra("BARCODE_STRING", barcodeStr.substring(0, i).trim());
-                    newScreen.putExtra("LOCATION_STRING", locationInput.getText());
+                    newScreen.putExtra("LOCATION_STRING", locationInput.getText().toString());
                     newScreen.putExtra("USERNAME",
                             getIntent().getStringExtra("USERNAME"));
                     newScreen.putExtra("PASSWORD",
@@ -93,7 +94,7 @@ public class waiting_for_scan extends AppCompatActivity {
                 else {
                     Intent newScreen = new Intent(getBaseContext(), new_part.class);
                     newScreen.putExtra("BARCODE_STRING", barcodeStr.substring(0, i).trim());
-                    newScreen.putExtra("LOCATION_STRING", locationInput.getText());
+                    newScreen.putExtra("LOCATION_STRING", locationInput.getText().toString());
                     newScreen.putExtra("USERNAME",
                             getIntent().getStringExtra("USERNAME"));
                     newScreen.putExtra("PASSWORD",
@@ -149,6 +150,7 @@ public class waiting_for_scan extends AppCompatActivity {
             getSupportActionBar().setTitle("");
         }
 
+        locationInput = (EditText) findViewById(R.id.locationInput);
     }
 
     private void initScan() {

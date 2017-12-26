@@ -59,9 +59,10 @@ public class retake_inventory extends AppCompatActivity {
                     errorToast.show();
                 }
                 else {
-                    String query = "SELECT * FROM inventory WHERE \"P/N\" = '" +
+                    String query = "UPDATE inventory SET \"Cur#Cost\" = " + newQuantity +
+                            " WHERE \"P/N\" = '" +
                             getIntent().getStringExtra("BARCODE_STRING").trim() +
-                            "' AND \"Location\" = '" +
+                            "' AND \"Location\" = " +
                             getIntent().getStringExtra("LOCATION_STRING").trim();
                     Statement statement = connection.createStatement();
                     ResultSet result = statement.executeQuery(query);
@@ -76,20 +77,16 @@ public class retake_inventory extends AppCompatActivity {
                                 "part(s) not stored", Toast.LENGTH_SHORT);
                         errorToast.show();
                     }
-                    query = "UPDATE inventory SET \"Cur#Cost\" = '" + newQuantity +
-                            "' WHERE \"P/N\" = '" +
-                            getIntent().getStringExtra("BARCODE_STRING").trim() +
-                            "' AND \"Location\" = '" +
-                            getIntent().getStringExtra("LOCATION_STRING").trim();
-                    statement = connection.createStatement();
-                    statement.executeQuery(query);
-
-                    Intent returnIntent = new Intent();
-                    setResult(waiting_for_scan.RESULT_CANCELED, returnIntent);
-                    finish();
                 }
             }
             catch (Exception ex) {
+                updateLog(newQuantity);
+                Toast toast = Toast.makeText(getApplicationContext(), "Stock updated",
+                        Toast.LENGTH_SHORT);
+                toast.show();
+                Intent returnIntent = new Intent();
+                setResult(waiting_for_scan.RESULT_CANCELED, returnIntent);
+                finish();
             }
         }
     }
@@ -116,8 +113,8 @@ public class retake_inventory extends AppCompatActivity {
                         getIntent().getStringExtra("USERNAME").trim() + "', \"Date/Time\" " +
                         "= GETDATE(),\"P/N\" = '" +
                         getIntent().getStringExtra("BARCODE_STRING").trim() + "', \"Type\"" +
-                        " = 'Update ', \"Quantity\" = '" + quantity + ", \"Location\" = " +
-                        getIntent().getStringExtra("LOCATION_STRING").trim() + "' WHERE " +
+                        " = 'update', \"Quantity\" = " + quantity + ", \"Location\" = " +
+                        getIntent().getStringExtra("LOCATION_STRING").trim() + " WHERE " +
                         "\"Date/Time\" IN (SELECT TOP (1) \"Date/Time\" FROM Transactions " +
                         "ORDER BY \"Date/Time\")";
                 Statement statement = connection.createStatement();

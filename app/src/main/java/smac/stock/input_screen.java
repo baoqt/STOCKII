@@ -133,7 +133,7 @@ public class input_screen extends AppCompatActivity {
             else {
                 String query = "SELECT \"Cur#Cost\" FROM inventory WHERE \"P/N\" = '" +
                         getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
-                        "\"Location\" = '" + locationDisplay.getText() + "'";
+                        "\"Location\" = " + getIntent().getStringExtra("LOCATION_STRING");
                 Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(query);
                 if (result.next()) {
@@ -223,8 +223,8 @@ public class input_screen extends AppCompatActivity {
                     getIntent().getStringExtra("USERNAME").trim() + "', \"Date/Time\" = " +
                     "GETDATE(),\"P/N\" = '" +
                     getIntent().getStringExtra("BARCODE_STRING").trim() + "', \"Type\" = '" +
-                    type + "'," + " \"Quantity\" = '" + partQuantity + ", \"Location\" = " + "" +
-                    getIntent().getStringExtra("LOCATION_STRING").trim() + "' WHERE " +
+                    type + "'," + " \"Quantity\" = " + partQuantity + ", \"Location\" = " +
+                    getIntent().getStringExtra("LOCATION_STRING").trim() + " WHERE " +
                     "\"Date/Time\" IN (SELECT TOP (1) \"Date/Time\" FROM Transactions ORDER BY " +
                     "\"Date/Time\")";
             Statement statement = connection.createStatement();
@@ -251,8 +251,8 @@ public class input_screen extends AppCompatActivity {
                 currentStock += partQuantity;
                 String query = "SELECT * FROM inventory WHERE \"P/N\" = '" +
                         getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
-                        "\"Location\" = '" +
-                        getIntent().getStringExtra("LOCATION_STRING").trim() + "'";
+                        "\"Location\" = " +
+                        getIntent().getStringExtra("LOCATION_STRING").trim();
                 Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(query);
                 if (result.next()) {
@@ -260,7 +260,8 @@ public class input_screen extends AppCompatActivity {
                     Toast withdrawToast = Toast.makeText(getApplicationContext(), partQuantity
                             + " part(s)" + " stored", Toast.LENGTH_SHORT);
                     withdrawToast.show();
-                } else {
+                }
+                else {
                     Toast errorToast = Toast.makeText(getApplicationContext(), "Error, " +
                             "part(s) not stored", Toast.LENGTH_SHORT);
                     errorToast.show();
@@ -268,13 +269,14 @@ public class input_screen extends AppCompatActivity {
                 query = "UPDATE inventory SET \"Cur#Cost\" = '" + currentStock +
                         "' WHERE \"P/N\" = '" +
                         getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
-                        "\"Location\" = '" +
-                        getIntent().getStringExtra("LOCATION_STRING").trim() + "'";
+                        "\"Location\" = " +
+                        getIntent().getStringExtra("LOCATION_STRING").trim();
                 statement = connection.createStatement();
                 statement.executeQuery(query);
             }
         }
         catch (Exception ex) {
+
         }
     }
 
@@ -294,7 +296,7 @@ public class input_screen extends AppCompatActivity {
                 currentStock -= partQuantity;
                 String query = "SELECT * FROM inventory WHERE \"P/N\" = '" +
                         getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
-                        "\"Location\" = '" +
+                        "\"Location\" = " +
                         getIntent().getStringExtra("LOCATION_STRING").trim();
                 Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(query);
@@ -311,8 +313,8 @@ public class input_screen extends AppCompatActivity {
                 query = "UPDATE inventory SET \"Cur#Cost\" = '" + currentStock +
                         "' WHERE \"P/N\" = '" +
                         getIntent().getStringExtra("BARCODE_STRING").trim() + "' AND " +
-                        "\"Location\" = '" +
-                        getIntent().getStringExtra("LOCATION_STRING").trim() + "'";
+                        "\"Location\" = " +
+                        getIntent().getStringExtra("LOCATION_STRING").trim();
                 statement = connection.createStatement();
                 statement.executeQuery(query);
             }
@@ -329,7 +331,7 @@ public class input_screen extends AppCompatActivity {
         intent.putExtra("BARCODE_STRING",
                 getIntent().getStringExtra("BARCODE_STRING"));
         intent.putExtra("LOCATION_STRING",
-                getIntent().getStringArrayExtra("LOCATION_STRING"));
+                getIntent().getStringExtra("LOCATION_STRING"));
         intent.putExtra("USERNAME", getIntent().getStringExtra("USERNAME"));
         intent.putExtra("PASSWORD", getIntent().getStringExtra("PASSWORD"));
         intent.putExtra("DATABASE", getIntent().getStringExtra("DATABASE"));
