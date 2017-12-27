@@ -7,10 +7,10 @@ android {
         applicationId "smac.stock"
         minSdkVersion 16
         targetSdkVersion 26
-        versionName '1.2'
+        versionName '1.3'
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-        versionCode 5
+        versionCode 6
     }
     buildTypes {
         release {

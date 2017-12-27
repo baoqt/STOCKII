@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="false"
+        jar="C:\Users\baoqt\Android Studio Projects\STOCK2\jtds-1.2.7\jtds-1.2.7.jar"
+        jumboMode="false"
+        min-sdk-version="16"
+        optimize="true"
+        revision="26.0.2"
+        sha1="47f9b00937707c328eccbcdd38867a799ea91b44">
+        <dex dex="C:\Users\baoqt\Android Studio Projects\STOCK2\app\build\intermediates\transforms\preDex\release\17.jar" />
+    </item>
+
+</items>
