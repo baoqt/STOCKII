@@ -101,6 +101,142 @@ public class new_part extends AppCompatActivity {
         IDDisplay.setText(userPrompt);
     }
 
+    public String dbType() {
+        String type = "";
+        try {
+            connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("IP"));
+            if (connection == null) {
+                Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
+                        Toast.LENGTH_SHORT);
+                errorToast.show();
+            }
+            else {
+                String query = "SELECT \"Type\" FROM inventory WHERE \"P/N\" = '" +
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                Statement statement = connection.createStatement();
+                ResultSet result = statement.executeQuery(query);
+                if (result.next()) {
+                    type = result.getString(1);
+                }
+                else {
+                    Toast errorToast = Toast.makeText(getApplicationContext(),
+                            "Connection error ",
+                            Toast.LENGTH_SHORT);
+                    errorToast.show();
+                }
+            }
+        }
+        catch (Exception ex) {
+        }
+
+        return type;
+    }
+
+    public String dbTitle() {
+        String title = "";
+        try {
+            connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("IP"));
+            if (connection == null) {
+                Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
+                        Toast.LENGTH_SHORT);
+                errorToast.show();
+            }
+            else {
+                String query = "SELECT \"Title\" FROM inventory WHERE \"P/N\" = '" +
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                Statement statement = connection.createStatement();
+                ResultSet result = statement.executeQuery(query);
+                if (result.next()) {
+                    title = result.getString(1);
+                }
+                else {
+                    Toast errorToast = Toast.makeText(getApplicationContext(),
+                            "Connection error ",
+                            Toast.LENGTH_SHORT);
+                    errorToast.show();
+                }
+            }
+        }
+        catch (Exception ex) {
+        }
+
+        return title;
+    }
+
+    public String dbDetail() {
+        String detail = "";
+        try {
+            connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("IP"));
+            if (connection == null) {
+                Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
+                        Toast.LENGTH_SHORT);
+                errorToast.show();
+            }
+            else {
+                String query = "SELECT \"Detail\" FROM inventory WHERE \"P/N\" = '" +
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                Statement statement = connection.createStatement();
+                ResultSet result = statement.executeQuery(query);
+                if (result.next()) {
+                    detail = result.getString(1);
+                }
+                else {
+                    Toast errorToast = Toast.makeText(getApplicationContext(),
+                            "Connection error ",
+                            Toast.LENGTH_SHORT);
+                    errorToast.show();
+                }
+            }
+        }
+        catch (Exception ex) {
+        }
+
+        return detail;
+    }
+
+    public String dbRev() {
+        String rev = "";
+        try {
+            connection = attemptConnection(getIntent().getStringExtra("USERNAME"),
+                    getIntent().getStringExtra("PASSWORD"),
+                    getIntent().getStringExtra("DATABASE"),
+                    getIntent().getStringExtra("IP"));
+            if (connection == null) {
+                Toast errorToast = Toast.makeText(getApplicationContext(), "Connection error ",
+                        Toast.LENGTH_SHORT);
+                errorToast.show();
+            }
+            else {
+                String query = "SELECT \"Rev\" FROM inventory WHERE \"P/N\" = '" +
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "'";
+                Statement statement = connection.createStatement();
+                ResultSet result = statement.executeQuery(query);
+                if (result.next()) {
+                    rev = result.getString(1);
+                }
+                else {
+                    Toast errorToast = Toast.makeText(getApplicationContext(),
+                            "Connection error ",
+                            Toast.LENGTH_SHORT);
+                    errorToast.show();
+                }
+            }
+        }
+        catch (Exception ex) {
+        }
+
+        return rev;
+    }
+
     // Add new item into database
     public void onYesClick(View view) {
         try {
@@ -113,10 +249,11 @@ public class new_part extends AppCompatActivity {
                         Toast.LENGTH_SHORT);
                 errorToast.show();
             } else {
-                String query = "INSERT INTO inventory (\"P/N\", \"Cur#Cost\", \"Location\")" +
-                        " VALUES ('" +
-                        getIntent().getStringExtra("BARCODE_STRING").trim() + "', 0," +
-                        getIntent().getStringExtra("LOCATION_STRING").trim() + ")";
+                String query = "INSERT INTO inventory (\"P/N\", \"Type\", \"Title\", \"Detail\", " +
+                        "\"Rev\", \"Cur#Cost\", \"Location\") VALUES ('" +
+                        getIntent().getStringExtra("BARCODE_STRING").trim() + "', '" +
+                        dbType() + "', '" + dbTitle() + "', '" + dbDetail() + "', '" + dbRev() +
+                        "', 0, " + getIntent().getStringExtra("LOCATION_STRING").trim() + ")";
                 Statement statement = connection.createStatement();
                 statement.executeQuery(query);
                 Toast toast = Toast.makeText(getApplicationContext(), "Part added",
